@@ -1,0 +1,11 @@
+{
+  "name": "offer-letter-generator",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc && node fix-imports.js && cp src/styles.css dist/styles.css",
+    "watch": "tsc --watch",
+    "serve": "node server.js",
+    "dev": "npm run build && node server.js"
+  }
+}

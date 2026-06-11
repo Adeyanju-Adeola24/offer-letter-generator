@@ -1,0 +1,138 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-serif {
+  font-family: 'Merriweather', Georgia, 'Times New Roman', serif !important;
+}
+
+input, select, textarea, button {
+  font-family: inherit;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.form-group {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.error-text {
+  transition: all 0.2s ease;
+}
+
+.section-content {
+  animation: slideUp 0.35s ease-out;
+}
+
+input[type="text"]::-webkit-outer-spin-button,
+input[type="text"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+@media print {
+  @page {
+    margin: 0;
+    size: A4;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  header,
+  footer,
+  #form-root,
+  #header-root,
+  #footer-root,
+  main > section,
+  .no-print {
+    display: none !important;
+  }
+
+  #preview-root {
+    display: block !important;
+    background: white !important;
+  }
+
+  #preview-root > section {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    background: white !important;
+  }
+
+  #preview-root .max-w-4xl {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #preview-root .offer-letter-paper {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  #preview-root #offer-letter-content {
+    padding: 20mm !important;
+  }
+
+  #preview-root .bg-blue-50\/70 {
+    background-color: #eff6ff !important;
+  }
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+a[href^="#"] {
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+#section-tabs {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#section-tabs::-webkit-scrollbar {
+  display: none;
+}
