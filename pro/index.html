@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cehpoint — Letter Generator Pro</title>
+  <meta name="description" content="Generate professional offer, increment, employment, rejection, termination, resignation, appointment, and warning letters instantly." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+            serif: ['Merriweather', 'Georgia', 'serif'],
+          },
+          animation: {
+            'gradient': 'gradient 8s ease infinite',
+            'fade-in': 'fadeIn 0.4s ease-out',
+            'slide-up': 'slideUp 0.3s ease-out',
+          },
+          keyframes: {
+            gradient: {
+              '0%, 100%': { backgroundPosition: '0% 50%' },
+              '50%': { backgroundPosition: '100% 50%' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #111111;
+      --bg-card: #1a1a1a;
+      --border: #2a2a2a;
+      --text-primary: #e0e0e0;
+      --text-secondary: #888888;
+      --accent-green: #00ff41;
+      --accent-blue: #00d4ff;
+      --accent-purple: #7c3aed;
+      --accent-red: #ff3355;
+      --accent-amber: #ffb347;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+    .sidebar {
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      width: 220px;
+      min-height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 40;
+      overflow-y: auto;
+      transition: transform 0.3s ease;
+    }
+    .sidebar-closed .sidebar { transform: translateX(-220px); }
+    .sidebar-closed .main-content { margin-left: 0; }
+    .main-content {
+      margin-left: 220px;
+      transition: margin-left 0.3s ease;
+      min-height: 100vh;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid transparent;
+    }
+    .nav-item:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-primary);
+    }
+    .nav-item.active {
+      background: rgba(0,255,65,0.08);
+      color: var(--accent-green);
+      border-color: rgba(0,255,65,0.2);
+      box-shadow: 0 0 20px rgba(0,255,65,0.05);
+    }
+    .nav-item .icon {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .nav-item.active .icon {
+      background: rgba(0,255,65,0.15);
+    }
+    .nav-item .icon-offer { background: rgba(0,212,255,0.12); color: var(--accent-blue); }
+    .nav-item.active .icon-offer { background: rgba(0,255,65,0.15); color: var(--accent-green); }
+    .nav-item .icon-increment { background: rgba(0,255,65,0.12); color: var(--accent-green); }
+    .nav-item.active .icon-increment { background: rgba(0,255,65,0.15); color: var(--accent-green); }
+    .nav-item .icon-employment { background: rgba(124,58,237,0.12); color: var(--accent-purple); }
+    .nav-item.active .icon-employment { background: rgba(0,255,65,0.15); color: var(--accent-green); }
+    .nav-item .icon-rejection { background: rgba(255,51,85,0.12); color: var(--accent-red); }
+    .nav-item.active .icon-rejection { background: rgba(0,255,65,0.15); color: var(--accent-green); }
+    .nav-item .icon-termination { background: rgba(255,51,85,0.12); color: var(--accent-red); }
+    .nav-item.active .icon-termination { background: rgba(0,255,65,0.15); color: var(--accent-green); }
+    .nav-item .icon-resignation { background: rgba(255,179,71,0.12); color: var(--accent-amber); }
+    .nav-item.active .icon-resignation { background: rgba(0,255,65,0.15); color: var(--accent-green); }
+    .nav-item .icon-appointment { background: rgba(0,212,255,0.12); color: var(--accent-blue); }
+    .nav-item.active .icon-appointment { background: rgba(0,255,65,0.15); color: var(--accent-green); }
+    .nav-item .icon-warning { background: rgba(255,179,71,0.12); color: var(--accent-amber); }
+    .nav-item.active .icon-warning { background: rgba(0,255,65,0.15); color: var(--accent-green); }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .input-field {
+      width: 100%;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: border-color 0.2s;
+      outline: none;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    .input-field:focus {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 0 3px rgba(0,255,65,0.1);
+    }
+    .input-field::placeholder { color: #555; }
+    .input-field.textarea { resize: vertical; min-height: 80px; }
+    .btn-primary {
+      background: linear-gradient(135deg, #00ff41, #00cc33);
+      color: #000;
+      font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(0,255,65,0.3);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--accent-green);
+      border: 1px solid rgba(0,255,65,0.3);
+      font-weight: 500;
+      padding: 10px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-outline:hover {
+      background: rgba(0,255,65,0.08);
+      border-color: var(--accent-green);
+    }
+    .preview-container {
+      background: #fff;
+      color: #000;
+      font-family: 'Merriweather', Georgia, serif;
+      padding: 40px;
+      min-height: 500px;
+      border-radius: 4px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+      font-size: 12pt;
+      line-height: 1.6;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .preview-container h1 { font-size: 20pt; font-weight: 700; text-align: center; margin-bottom: 20px; color: #000; }
+    .preview-container h2 { font-size: 14pt; font-weight: 700; margin-top: 16px; margin-bottom: 8px; color: #000; }
+    .preview-container p { margin-bottom: 10px; color: #222; }
+    .preview-container .letter-date { text-align: right; margin-bottom: 20px; }
+    .preview-container .letter-subject { font-weight: 700; margin-bottom: 16px; }
+    .preview-container .letter-salutation { margin-bottom: 12px; }
+    .preview-container .letter-closing { margin-top: 30px; }
+    .preview-container .letter-signature { margin-top: 40px; }
+    .preview-container .letter-body { margin-bottom: 16px; }
+    .preview-container table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .preview-container table td { padding: 6px 12px; border: 1px solid #ccc; font-size: 11pt; }
+    .preview-container table td:first-child { font-weight: 600; width: 40%; }
+    .preview-container .letter-ref { font-size: 10pt; color: #666; margin-bottom: 4px; }
+    .letter-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--accent-green);
+      color: #000;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 100;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.error { background: var(--accent-red); color: #fff; }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-220px); }
+      .sidebar.mobile-open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+      .preview-container { padding: 20px; font-size: 11pt; }
+    }
+    @media print {
+      .no-print { display: none !important; }
+      .preview-container { box-shadow: none; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app" class="sidebar-closed">
+  <!-- Sidebar Toggle -->
+  <button onclick="toggleSidebar()" class="no-print fixed top-3 left-3 z-50 w-9 h-9 flex items-center justify-center rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-[#888] hover:text-[#e0e0e0] transition-colors cursor-pointer" id="menuBtn">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+
+  <!-- Sidebar -->
+  <div class="sidebar no-print" id="sidebar">
+    <div class="p-4 border-b border-[#2a2a2a]">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-[#00ff41] flex items-center justify-center text-black font-bold text-sm">C</div>
+        <div>
+          <div class="text-sm font-semibold text-[#e0e0e0]">Letter Generator</div>
+          <div class="text-[10px] text-[#666]">Professional Letters</div>
+        </div>
+      </div>
+    </div>
+    <div class="p-3 space-y-1" id="navList">
+      <!-- Populated by JS -->
+    </div>
+    <div class="absolute bottom-3 left-3 right-3 p-3 rounded-lg border border-[#2a2a2a] bg-[#111]">
+      <div class="text-[11px] text-[#555] mb-1">Total Letters</div>
+      <div class="text-lg font-bold text-[#00ff41]" id="totalLetters">0</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" id="mainContent">
+    <!-- Header -->
+    <header class="no-print border-b border-[#2a2a2a] bg-[#111] px-6 py-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-lg font-bold text-[#e0e0e0]" id="pageTitle">Select a Letter Type</h1>
+        <p class="text-xs text-[#666]" id="pageDesc">Choose from the sidebar to get started</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="exportPDF()" class="btn-primary" id="exportBtn" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Export PDF
+        </button>
+      </div>
+    </header>
+
+    <!-- Body -->
+    <div class="p-4 lg:p-6">
+      <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Form Panel -->
+        <div class="w-full lg:w-[420px] xl:w-[460px] flex-shrink-0 no-print" id="formPanel">
+          <div class="card" id="formCard">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <span class="letter-badge bg-[rgba(0,255,65,0.1)] text-[#00ff41] border border-[rgba(0,255,65,0.2)]" id="formBadge">Offer Letter</span>
+                <h2 class="text-base font-semibold text-[#e0e0e0]" id="formTitle">Letter Details</h2>
+              </div>
+              <button onclick="clearForm()" class="text-xs text-[#666] hover:text-[#ff3355] transition-colors cursor-pointer bg-transparent border-none">Clear All</button>
+            </div>
+            <div id="formFields" class="space-y-3">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-semibold text-[#888] no-print">Preview</h2>
+            <div class="flex items-center gap-2 no-print">
+              <span class="text-[11px] text-[#555]" id="previewDate"></span>
+            </div>
+          </div>
+          <div class="preview-container" id="preview">
+            <div style="text-align:center;padding:60px 20px;color:#999;">
+              <div style="font-size:48px;margin-bottom:16px;">📄</div>
+              <div style="font-size:16px;font-weight:600;color:#555;margin-bottom:8px;">Select a Letter Type</div>
+              <div style="font-size:13px;">Choose from the sidebar and fill in the details<br/>to preview your letter here.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const LETTER_TYPES = [
+  {
+    id: 'offer',
+    name: 'Offer Letter',
+    desc: 'Formal job offer with compensation details',
+    badge: 'OFFER',
+    icon: 'O',
+    iconClass: 'icon-offer',
+    fields: [
+      { id: 'company', label: 'Company Name', type: 'text', placeholder: 'Acme Corp' },
+      { id: 'companyAddress', label: 'Company Address', type: 'text', placeholder: '123 Business Ave, City' },
+      { id: 'candidateName', label: 'Candidate Name', type: 'text', placeholder: 'John Doe' },
+      { id: 'position', label: 'Position Title', type: 'text', placeholder: 'Senior Software Engineer' },
+      { id: 'startDate', label: 'Start Date', type: 'date' },
+      { id: 'salary', label: 'Annual Salary', type: 'text', placeholder: '$120,000' },
+      { id: 'benefits', label: 'Benefits Summary', type: 'textarea', placeholder: 'Health insurance, 401k, 15 PTO days' },
+      { id: 'reportingManager', label: 'Reporting Manager', type: 'text', placeholder: 'Jane Smith' },
+      { id: 'hrName', label: 'HR Representative', type: 'text', placeholder: 'HR Manager Name' },
+    ],
+    template: (d) => {
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      return `
+        <p class="letter-date">${date}</p>
+        <p class="letter-ref">Ref: OFF/${d.candidateName?.toUpperCase()?.replace(/\s/g,'') || 'XXXX'}/${new Date().getFullYear()}</p>
+        <p><strong>${d.candidateName || '[Candidate Name]'}</strong><br/>${d.candidateName ? '' : '[Candidate Address]'}</p>
+        <p class="letter-subject">Subject: Offer of Employment — ${d.position || '[Position]'}</p>
+        <p class="letter-salutation">Dear ${d.candidateName ? d.candidateName.split(' ')[0] : '[Candidate]'},</p>
+        <p class="letter-body">We are delighted to offer you the position of <strong>${d.position || '[Position]'}</strong> at <strong>${d.company || '[Company]'}</strong>. After careful consideration of your qualifications and experience, we are confident that you will be a valuable addition to our team.</p>
+        <p class="letter-body">Your anticipated start date is <strong>${d.startDate || '[Start Date]'}</strong>. You will report to <strong>${d.reportingManager || '[Reporting Manager]'}</strong>.</p>
+        <h2>Compensation</h2>
+        <table>
+          <tr><td>Annual Salary</td><td><strong>${d.salary || '[Salary]'}</strong></td></tr>
+          <tr><td>Benefits</td><td>${d.benefits || '[Benefits]'}</td></tr>
+        </table>
+        <p class="letter-body">This offer is contingent upon the satisfactory completion of background verification and reference checks.</p>
+        <p class="letter-body">Please confirm your acceptance of this offer by signing below and returning this letter by ${new Date(Date.now() + 7*86400000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.</p>
+        <p class="letter-body">We look forward to welcoming you to <strong>${d.company || '[Company]'}</strong>.</p>
+        <div class="letter-closing">
+          <p>Sincerely,</p>
+          <div class="letter-signature">
+            <p><strong>${d.hrName || '[HR Representative]'}</strong></p>
+            <p>${d.company || '[Company]'} | Human Resources</p>
+          </div>
+        </div>
+        <div style="margin-top:30px;padding-top:20px;border-top:1px solid #ddd;font-size:10pt;">
+          <p><strong>Acceptance:</strong> I, ${d.candidateName || '[Candidate Name]'}, accept the offer of employment as described above.</p>
+          <p style="margin-top:20px;">Signature: ___________________________ Date: _______________</p>
+        </div>
+      `;
+    }
+  },
+  {
+    id: 'increment',
+    name: 'Increment Letter',
+    desc: 'Salary hike and promotion notification',
+    badge: 'INCREMENT',
+    icon: 'I',
+    iconClass: 'icon-increment',
+    fields: [
+      { id: 'company', label: 'Company Name', type: 'text', placeholder: 'Acme Corp' },
+      { id: 'employeeName', label: 'Employee Name', type: 'text', placeholder: 'John Doe' },
+      { id: 'position', label: 'Current Position', type: 'text', placeholder: 'Software Engineer' },
+      { id: 'currentSalary', label: 'Current Salary', type: 'text', placeholder: '$80,000' },
+      { id: 'newSalary', label: 'New Salary', type: 'text', placeholder: '$95,000' },
+      { id: 'effectiveDate', label: 'Effective Date', type: 'date' },
+      { id: 'incrementReason', label: 'Reason for Increment', type: 'textarea', placeholder: 'Outstanding performance in Q3, successful project delivery' },
+      { id: 'hrName', label: 'HR Representative', type: 'text', placeholder: 'HR Manager Name' },
+    ],
+    template: (d) => {
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      return `
+        <p class="letter-date">${date}</p>
+        <p class="letter-ref">Ref: INC/${d.employeeName?.toUpperCase()?.replace(/\s/g,'') || 'XXXX'}/${new Date().getFullYear()}</p>
+        <p><strong>${d.employeeName || '[Employee Name]'}</strong><br/>${d.position || '[Position]'}<br/>${d.company || '[Company]'}</p>
+        <p class="letter-subject">Subject: Salary Increment Notification</p>
+        <p class="letter-salutation">Dear ${d.employeeName ? d.employeeName.split(' ')[0] : '[Employee]'},</p>
+        <p class="letter-body">We are pleased to inform you that based on your performance and contributions to <strong>${d.company || '[Company]'}</strong>, your compensation has been reviewed and revised.</p>
+        <p class="letter-body">${d.incrementReason || '[Reason for increment]'}</p>
+        <h2>Revised Compensation</h2>
+        <table>
+          <tr><td>Previous Salary</td><td><strong>${d.currentSalary || '[Current Salary]'}</strong></td></tr>
+          <tr><td>Revised Salary</td><td><strong>${d.newSalary || '[New Salary]'}</strong></td></tr>
+          <tr><td>Effective Date</td><td><strong>${d.effectiveDate || '[Effective Date]'}</strong></td></tr>
+        </table>
+        <p class="letter-body">This increment reflects our appreciation for your dedication and the value you bring to our organization.</p>
+        <p class="letter-body">We look forward to your continued contributions and success at ${d.company || '[Company]'}.</p>
+        <div class="letter-closing">
+          <p>Sincerely,</p>
+          <div class="letter-signature">
+            <p><strong>${d.hrName || '[HR Representative]'}</strong></p>
+            <p>${d.company || '[Company]'} | Human Resources</p>
+          </div>
+        </div>
+      `;
+    }
+  },
+  {
+    id: 'employment',
+    name: 'Employment Letter',
+    desc: 'Proof of employment / experience certificate',
+    badge: 'EMPLOYMENT',
+    icon: 'E',
+    iconClass: 'icon-employment',
+    fields: [
+      { id: 'company', label: 'Company Name', type: 'text', placeholder: 'Acme Corp' },
+      { id: 'companyAddress', label: 'Company Address', type: 'text', placeholder: '123 Business Ave, City' },
+      { id: 'employeeName', label: 'Employee Name', type: 'text', placeholder: 'John Doe' },
+      { id: 'position', label: 'Position Held', type: 'text', placeholder: 'Software Engineer' },
+      { id: 'joiningDate', label: 'Date of Joining', type: 'date' },
+      { id: 'leavingDate', label: 'Date of Leaving (if applicable)', type: 'date' },
+      { id: 'responsibilities', label: 'Key Responsibilities', type: 'textarea', placeholder: 'Developed and maintained web applications, led team of 3 developers' },
+      { id: 'hrName', label: 'Authorized Signatory', type: 'text', placeholder: 'HR Manager Name' },
+    ],
+    template: (d) => {
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const status = d.leavingDate ? `from ${d.joiningDate || '[Joining Date]'} to ${d.leavingDate}` : `since ${d.joiningDate || '[Joining Date]'} and is currently employed with us`;
+      return `
+        <p class="letter-date">${date}</p>
+        <p class="letter-ref">Ref: EMP/${d.employeeName?.toUpperCase()?.replace(/\s/g,'') || 'XXXX'}/${new Date().getFullYear()}</p>
+        <p class="letter-subject">Subject: Employment Verification / Experience Certificate</p>
+        <p>To Whom It May Concern,</p>
+        <p class="letter-body">This letter confirms that <strong>${d.employeeName || '[Employee Name]'}</strong> was employed at <strong>${d.company || '[Company]'}</strong> in the capacity of <strong>${d.position || '[Position]'}</strong>.</p>
+        <p class="letter-body">Their tenure with us was ${status}.</p>
+        <h2>Key Responsibilities</h2>
+        <p class="letter-body">${d.responsibilities || '[Responsibilities]'}</p>
+        <p class="letter-body">During their employment, ${d.employeeName ? d.employeeName.split(' ')[0] : '[Employee]'} demonstrated professionalism, dedication, and strong performance in their role.</p>
+        <p class="letter-body">We wish ${d.employeeName ? d.employeeName.split(' ')[0] : '[Employee]'} the very best in future endeavors.</p>
+        <div class="letter-closing">
+          <p>Sincerely,</p>
+          <div class="letter-signature">
+            <p><strong>${d.hrName || '[Authorized Signatory]'}</strong></p>
+            <p>${d.company || '[Company]'} | Human Resources</p>
+          </div>
+        </div>
+      `;
+    }
+  },
+  {
+    id: 'rejection',
+    name: 'Rejection Letter',
+    desc: 'Candidate rejection after interview',
+    badge: 'REJECTION',
+    icon: 'R',
+    iconClass: 'icon-rejection',
+    fields: [
+      { id: 'company', label: 'Company Name', type: 'text', placeholder: 'Acme Corp' },
+      { id: 'candidateName', label: 'Candidate Name', type: 'text', placeholder: 'John Doe' },
+      { id: 'position', label: 'Position Applied For', type: 'text', placeholder: 'Software Engineer' },
+      { id: 'interviewDate', label: 'Interview Date', type: 'date' },
+      { id: 'rejectionReason', label: 'Reason (optional)', type: 'textarea', placeholder: 'We decided to proceed with another candidate whose experience more closely matches our needs' },
+      { id: 'hrName', label: 'HR Representative', type: 'text', placeholder: 'HR Manager Name' },
+    ],
+    template: (d) => {
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      return `
+        <p class="letter-date">${date}</p>
+        <p class="letter-ref">Ref: REJ/${d.candidateName?.toUpperCase()?.replace(/\s/g,'') || 'XXXX'}/${new Date().getFullYear()}</p>
+        <p><strong>${d.candidateName || '[Candidate Name]'}</strong></p>
+        <p class="letter-subject">Subject: Update on Your Application — ${d.position || '[Position]'}</p>
+        <p class="letter-salutation">Dear ${d.candidateName ? d.candidateName.split(' ')[0] : '[Candidate]'},</p>
+        <p class="letter-body">Thank you for taking the time to interview for the <strong>${d.position || '[Position]'}</strong> position at <strong>${d.company || '[Company]'}</strong> on ${d.interviewDate || '[Interview Date]'}.</p>
+        <p class="letter-body">After careful consideration, we have decided to move forward with another candidate whose qualifications more closely align with our current needs.</p>
+        ${d.rejectionReason ? `<p class="letter-body">${d.rejectionReason}</p>` : ''}
+        <p class="letter-body">We were impressed by your skills and sincerely appreciate your interest in joining ${d.company || '[Company]'}. We encourage you to apply for future openings that match your profile.</p>
+        <p class="letter-body">We wish you the very best in your job search and professional journey.</p>
+        <div class="letter-closing">
+          <p>Sincerely,</p>
+          <div class="letter-signature">
+            <p><strong>${d.hrName || '[HR Representative]'}</strong></p>
+            <p>${d.company || '[Company]'} | Talent Acquisition</p>
+          </div>
+        </div>
+      `;
+    }
+  },
+  {
+    id: 'termination',
+    name: 'Termination Letter',
+    desc: 'Employee termination / dismissal notice',
+    badge: 'TERMINATION',
+    icon: 'T',
+    iconClass: 'icon-termination',
+    fields: [
+      { id: 'company', label: 'Company Name', type: 'text', placeholder: 'Acme Corp' },
+      { id: 'employeeName', label: 'Employee Name', type: 'text', placeholder: 'John Doe' },
+      { id: 'position', label: 'Position', type: 'text', placeholder: 'Software Engineer' },
+      { id: 'terminationDate', label: 'Last Working Day', type: 'date' },
+      { id: 'terminationReason', label: 'Reason for Termination', type: 'textarea', placeholder: 'Violation of company policy regarding...' },
+      { id: 'severance', label: 'Severance Details', type: 'text', placeholder: 'Two weeks severance pay, COBRA coverage until...' },
+      { id: 'hrName', label: 'HR Representative', type: 'text', placeholder: 'HR Manager Name' },
+    ],
+    template: (d) => {
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      return `
+        <p class="letter-date">${date}</p>
+        <p class="letter-ref">Ref: TERM/${d.employeeName?.toUpperCase()?.replace(/\s/g,'') || 'XXXX'}/${new Date().getFullYear()}</p>
+        <p><strong>${d.employeeName || '[Employee Name]'}</strong><br/>${d.position || '[Position]'}</p>
+        <p class="letter-subject">Subject: Termination of Employment</p>
+        <p class="letter-salutation">Dear ${d.employeeName ? d.employeeName.split(' ')[0] : '[Employee]'},</p>
+        <p class="letter-body">This letter serves as formal notification that your employment with <strong>${d.company || '[Company]'}</strong> is terminated, effective <strong>${d.terminationDate || '[Termination Date]'}</strong>.</p>
+        <p class="letter-body">Reason for termination:<br/>${d.terminationReason || '[Reason for termination]'}</p>
+        <h2>Final Settlement</h2>
+        <p class="letter-body">${d.severance || '[Severance details]'}</p>
+        <p class="letter-body">Please return all company property including laptop, ID badge, and access cards by your last working day. Details regarding final paycheck and benefits continuation will be provided separately.</p>
+        <p class="letter-body">We thank you for your contributions during your time at ${d.company || '[Company]'}.</p>
+        <div class="letter-closing">
+          <p>Sincerely,</p>
+          <div class="letter-signature">
+            <p><strong>${d.hrName || '[HR Representative]'}</strong></p>
+            <p>${d.company || '[Company]'} | Human Resources</p>
+          </div>
+        </div>
+        <div style="margin-top:30px;padding-top:20px;border-top:1px solid #ddd;font-size:10pt;">
+          <p><strong>Acknowledgment:</strong> I acknowledge receipt of this termination notice.</p>
+          <p style="margin-top:20px;">Signature: ___________________________ Date: _______________</p>
+        </div>
+      `;
+    }
+  },
+  {
+    id: 'resignation',
+    name: 'Resignation Letter',
+    desc: 'Employee resignation acceptance',
+    badge: 'RESIGNATION',
+    icon: 'S',
+    iconClass: 'icon-resignation',
+    fields: [
+      { id: 'company', label: 'Company Name', type: 'text', placeholder: 'Acme Corp' },
+      { id: 'companyAddress', label: 'Company Address', type: 'text', placeholder: '123 Business Ave, City' },
+      { id: 'employeeName', label: 'Employee Name', type: 'text', placeholder: 'John Doe' },
+      { id: 'position', label: 'Position', type: 'text', placeholder: 'Software Engineer' },
+      { id: 'lastWorkingDay', label: 'Last Working Day', type: 'date' },
+      { id: 'resignationReason', label: 'Reason for Resignation', type: 'textarea', placeholder: 'Pursuing a new opportunity / personal reasons / further studies' },
+      { id: 'managerName', label: 'Manager / Recipient Name', type: 'text', placeholder: 'Jane Smith' },
+    ],
+    template: (d) => {
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      return `
+        <p class="letter-date">${date}</p>
+        <p><strong>${d.managerName || '[Manager Name]'}</strong><br/>${d.company || '[Company]'}<br/>${d.companyAddress || '[Company Address]'}</p>
+        <p class="letter-subject">Subject: Resignation — ${d.employeeName || '[Employee Name]'}</p>
+        <p class="letter-salutation">Dear ${d.managerName ? d.managerName.split(' ')[0] : '[Manager]'},</p>
+        <p class="letter-body">Please accept this letter as formal notification that I am resigning from my position as <strong>${d.position || '[Position]'}</strong> at <strong>${d.company || '[Company]'}</strong>. My last working day will be <strong>${d.lastWorkingDay || '[Last Working Day]'}</strong>.</p>
+        ${d.resignationReason ? `<p class="letter-body">${d.resignationReason}</p>` : ''}
+        <p class="letter-body">I am grateful for the opportunities I have had during my time at ${d.company || '[Company]'}. I have learned and grown professionally, and I appreciate the support from the team.</p>
+        <p class="letter-body">I will ensure a smooth handover of my responsibilities before my departure. I am committed to making this transition as seamless as possible.</p>
+        <p class="letter-body">I wish ${d.company || '[Company]'} continued success.</p>
+        <div class="letter-closing">
+          <p>Sincerely,</p>
+          <div class="letter-signature">
+            <p><strong>${d.employeeName || '[Employee Name]'}</strong></p>
+            <p>${d.position || '[Position]'}</p>
+          </div>
+        </div>
+      `;
+    }
+  },
+  {
+    id: 'appointment',
+    name: 'Appointment Letter',
+    desc: 'Formal appointment / confirmation letter',
+    badge: 'APPOINTMENT',
+    icon: 'A',
+    iconClass: 'icon-appointment',
+    fields: [
+      { id: 'company', label: 'Company Name', type: 'text', placeholder: 'Acme Corp' },
+      { id: 'companyAddress', label: 'Company Address', type: 'text', placeholder: '123 Business Ave, City' },
+      { id: 'candidateName', label: 'Candidate Name', type: 'text', placeholder: 'John Doe' },
+      { id: 'position', label: 'Position Title', type: 'text', placeholder: 'Junior Software Engineer' },
+      { id: 'startDate', label: 'Start Date', type: 'date' },
+      { id: 'probationPeriod', label: 'Probation Period', type: 'text', placeholder: '6 months' },
+      { id: 'salary', label: 'Annual Salary', type: 'text', placeholder: '$60,000' },
+      { id: 'terms', label: 'Terms & Conditions', type: 'textarea', placeholder: 'Standard company policies apply. 5-day work week. 2 weeks notice period.' },
+      { id: 'hrName', label: 'HR Representative', type: 'text', placeholder: 'HR Manager Name' },
+    ],
+    template: (d) => {
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      return `
+        <p class="letter-date">${date}</p>
+        <p class="letter-ref">Ref: APP/${d.candidateName?.toUpperCase()?.replace(/\s/g,'') || 'XXXX'}/${new Date().getFullYear()}</p>
+        <p><strong>${d.candidateName || '[Candidate Name]'}</strong><br/>${d.candidateName ? '' : '[Address]'}</p>
+        <p class="letter-subject">Subject: Letter of Appointment — ${d.position || '[Position]'}</p>
+        <p class="letter-salutation">Dear ${d.candidateName ? d.candidateName.split(' ')[0] : '[Candidate]'},</p>
+        <p class="letter-body">We are pleased to appoint you to the position of <strong>${d.position || '[Position]'}</strong> at <strong>${d.company || '[Company]'}</strong>.</p>
+        <h2>Terms of Appointment</h2>
+        <table>
+          <tr><td>Position</td><td><strong>${d.position || '[Position]'}</strong></td></tr>
+          <tr><td>Start Date</td><td><strong>${d.startDate || '[Start Date]'}</strong></td></tr>
+          <tr><td>Probation Period</td><td><strong>${d.probationPeriod || '[Probation Period]'}</strong></td></tr>
+          <tr><td>Annual Salary</td><td><strong>${d.salary || '[Salary]'}</strong></td></tr>
+        </table>
+        <h2>Terms & Conditions</h2>
+        <p class="letter-body">${d.terms || '[Terms and conditions]'}</p>
+        <p class="letter-body">Upon successful completion of the probation period, your employment will be confirmed per company policy.</p>
+        <p class="letter-body">Please sign the duplicate copy of this letter as acceptance of the terms outlined above.</p>
+        <div class="letter-closing">
+          <p>Welcome aboard!</p>
+          <div class="letter-signature">
+            <p><strong>${d.hrName || '[HR Representative]'}</strong></p>
+            <p>${d.company || '[Company]'} | Human Resources</p>
+          </div>
+        </div>
+        <div style="margin-top:30px;padding-top:20px;border-top:1px solid #ddd;font-size:10pt;">
+          <p><strong>Acceptance:</strong> I accept the appointment on the terms stated above.</p>
+          <p style="margin-top:20px;">Signature: ___________________________ Date: _______________</p>
+        </div>
+      `;
+    }
+  },
+  {
+    id: 'warning',
+    name: 'Warning Letter',
+    desc: 'Performance / conduct warning notice',
+    badge: 'WARNING',
+    icon: 'W',
+    iconClass: 'icon-warning',
+    fields: [
+      { id: 'company', label: 'Company Name', type: 'text', placeholder: 'Acme Corp' },
+      { id: 'employeeName', label: 'Employee Name', type: 'text', placeholder: 'John Doe' },
+      { id: 'position', label: 'Position', type: 'text', placeholder: 'Software Engineer' },
+      { id: 'incidentDate', label: 'Date of Incident', type: 'date' },
+      { id: 'warningReason', label: 'Reason for Warning', type: 'textarea', placeholder: 'Repeated late arrivals / Performance below expectations / Policy violation' },
+      { id: 'previousWarnings', label: 'Previous Warnings', type: 'text', placeholder: 'Verbal warning on [date]. Written reminder on [date].' },
+      { id: 'consequences', label: 'Consequences if Repeated', type: 'text', placeholder: 'Further disciplinary action up to and including termination of employment' },
+      { id: 'hrName', label: 'HR Representative', type: 'text', placeholder: 'HR Manager Name' },
+    ],
+    template: (d) => {
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      return `
+        <p class="letter-date">${date}</p>
+        <p class="letter-ref">Ref: WRN/${d.employeeName?.toUpperCase()?.replace(/\s/g,'') || 'XXXX'}/${new Date().getFullYear()}</p>
+        <p><strong>${d.employeeName || '[Employee Name]'}</strong><br/>${d.position || '[Position]'}<br/>${d.company || '[Company]'}</p>
+        <p class="letter-subject">Subject: Formal Written Warning</p>
+        <p class="letter-salutation">Dear ${d.employeeName ? d.employeeName.split(' ')[0] : '[Employee]'},</p>
+        <p class="letter-body">This letter serves as a formal written warning regarding <strong>${d.warningReason || '[Reason for warning]'}</strong>.</p>
+        ${d.incidentDate ? `<p class="letter-body">Date of incident: <strong>${d.incidentDate}</strong></p>` : ''}
+        ${d.previousWarnings ? `<p class="letter-body"><strong>Previous Actions:</strong> ${d.previousWarnings}</p>` : ''}
+        <p class="letter-body">This conduct is unacceptable and must be corrected immediately. We expect to see improvement and adherence to company policies going forward.</p>
+        <p class="letter-body"><strong>Consequences:</strong> ${d.consequences || 'Further disciplinary action may be taken if this behavior continues.'}</p>
+        <p class="letter-body">We believe in your ability to improve and we are committed to supporting your professional growth. Please consider this an opportunity to reset and realign with our company values.</p>
+        <p class="letter-body">Please sign below to acknowledge receipt of this warning. Your signature does not necessarily indicate agreement with the contents, only that you have received and understood this notice.</p>
+        <div class="letter-closing">
+          <p>Sincerely,</p>
+          <div class="letter-signature">
+            <p><strong>${d.hrName || '[HR Representative]'}</strong></p>
+            <p>${d.company || '[Company]'} | Human Resources</p>
+          </div>
+        </div>
+        <div style="margin-top:30px;padding-top:20px;border-top:1px solid #ddd;font-size:10pt;">
+          <p><strong>Acknowledgment:</strong> I acknowledge receipt of this warning letter.</p>
+          <p style="margin-top:20px;">Employee Signature: ___________________________ Date: _______________</p>
+          <p style="margin-top:10px;">Manager Signature: ___________________________ Date: _______________</p>
+        </div>
+      `;
+    }
+  },
+];
+
+const STATE = {
+  activeType: null,
+  formData: {},
+  generatedCount: 0,
+};
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const app = document.getElementById('app');
+  sidebar.classList.toggle('mobile-open');
+  app.classList.toggle('sidebar-closed');
+}
+
+function renderNav() {
+  const nav = document.getElementById('navList');
+  nav.innerHTML = LETTER_TYPES.map(lt => `
+    <div class="nav-item ${STATE.activeType === lt.id ? 'active' : ''}" onclick="selectType('${lt.id}')">
+      <div class="icon ${lt.iconClass}">${lt.icon}</div>
+      <div>
+        <div class="text-sm">${lt.name}</div>
+        <div class="text-[10px] text-[#555]">${lt.desc}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectType(id) {
+  const lt = LETTER_TYPES.find(t => t.id === id);
+  if (!lt) return;
+  STATE.activeType = id;
+  if (!STATE.formData[id]) {
+    STATE.formData[id] = {};
+  }
+  renderNav();
+  renderForm();
+  renderPreview();
+  updateHeader();
+  updateExportBtn();
+
+  document.getElementById('sidebar').classList.remove('mobile-open');
+
+  document.getElementById('pageTitle').textContent = lt.name;
+  document.getElementById('pageDesc').textContent = lt.desc;
+}
+
+function renderForm() {
+  const lt = LETTER_TYPES.find(t => t.id === STATE.activeType);
+  if (!lt) {
+    document.getElementById('formFields').innerHTML = '<p class="text-[#555] text-sm">Select a letter type from the sidebar.</p>';
+    return;
+  }
+
+  document.getElementById('formBadge').textContent = lt.badge;
+  document.getElementById('formTitle').textContent = lt.name;
+
+  const data = STATE.formData[lt.id] || {};
+
+  const html = lt.fields.map(f => {
+    const val = data[f.id] || '';
+    if (f.type === 'textarea') {
+      return `
+        <div>
+          <label class="block text-xs font-medium text-[#888] mb-1">${f.label}</label>
+          <textarea class="input-field textarea" id="field_${f.id}" placeholder="${f.placeholder || ''}" oninput="onFieldChange('${lt.id}','${f.id}',this.value)">${val}</textarea>
+        </div>
+      `;
+    }
+    return `
+      <div>
+        <label class="block text-xs font-medium text-[#888] mb-1">${f.label}</label>
+        <input class="input-field" type="${f.type}" id="field_${f.id}" placeholder="${f.placeholder || ''}" value="${val}" oninput="onFieldChange('${lt.id}','${f.id}',this.value)" />
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('formFields').innerHTML = html;
+}
+
+function onFieldChange(typeId, fieldId, value) {
+  if (!STATE.formData[typeId]) STATE.formData[typeId] = {};
+  STATE.formData[typeId][fieldId] = value;
+  renderPreview();
+}
+
+function renderPreview() {
+  const lt = LETTER_TYPES.find(t => t.id === STATE.activeType);
+  if (!lt) return;
+  const data = STATE.formData[lt.id] || {};
+
+  const hasAnyData = lt.fields.some(f => data[f.id]);
+  const preview = document.getElementById('preview');
+
+  if (!hasAnyData) {
+    preview.innerHTML = lt.template(data);
+    return;
+  }
+
+  preview.innerHTML = lt.template(data);
+
+  const now = new Date();
+  document.getElementById('previewDate').textContent = `Generated: ${now.toLocaleString()}`;
+}
+
+function updateHeader() {
+  const lt = LETTER_TYPES.find(t => t.id === STATE.activeType);
+  if (lt) {
+    document.getElementById('pageTitle').textContent = lt.name;
+    document.getElementById('pageDesc').textContent = lt.desc;
+  }
+}
+
+function updateExportBtn() {
+  document.getElementById('exportBtn').disabled = !STATE.activeType;
+}
+
+function clearForm() {
+  if (!STATE.activeType) return;
+  if (!confirm('Clear all fields for this letter?')) return;
+  STATE.formData[STATE.activeType] = {};
+  renderForm();
+  renderPreview();
+  showToast('Form cleared', '');
+}
+
+function exportPDF() {
+  const btn = document.getElementById('exportBtn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+
+  const lt = LETTER_TYPES.find(t => t.id === STATE.activeType);
+  if (!lt) { btn.disabled = false; btn.innerHTML = 'Export PDF'; return; }
+
+  const preview = document.getElementById('preview');
+
+  html2canvas(preview, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+    width: preview.scrollWidth,
+    height: preview.scrollHeight,
+    windowHeight: preview.scrollHeight,
+  }).then(canvas => {
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    let heightLeft = pdfHeight;
+    let position = 0;
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - pdfHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+    }
+
+    const filename = `${lt.name.replace(/\s/g,'_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    pdf.save(filename);
+
+    STATE.generatedCount++;
+    document.getElementById('totalLetters').textContent = STATE.generatedCount;
+    showToast('PDF exported successfully!', '');
+
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Export PDF`;
+  }).catch(err => {
+    console.error(err);
+    showToast('Failed to generate PDF. Check console.', 'error');
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Export PDF`;
+  });
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (type === 'error' ? ' error' : '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function init() {
+  renderNav();
+  document.getElementById('totalLetters').textContent = '0';
+  document.getElementById('exportBtn').disabled = true;
+
+  const firstType = LETTER_TYPES[0];
+  STATE.activeType = firstType.id;
+  STATE.formData[firstType.id] = {};
+  selectType(firstType.id);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
